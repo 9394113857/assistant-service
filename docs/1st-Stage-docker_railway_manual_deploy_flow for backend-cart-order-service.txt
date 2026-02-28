@@ -1,0 +1,195 @@
+============================================================
+🚀 ASSISTANT SERVICE – MANUAL DOCKER DEPLOY (RAILWAY)
+============================================================
+
+Service Name: assistant-service
+DockerHub Username: pythoncodelife
+Version: v1.0.0
+Runtime: Flask + Gunicorn
+Database: Supabase Postgres (Cloud)
+PORT: Dynamic (Railway injects automatically)
+
+============================================================
+STEP 1️⃣  Ensure run.py is Correct
+============================================================
+
+import os
+from app import create_app
+
+app = create_app()
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))
+    app.run(host="0.0.0.0", port=port, debug=False)
+
+============================================================
+STEP 2️⃣  Dockerfile Must Support Dynamic PORT
+============================================================
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+EXPOSE 8000
+
+# IMPORTANT: Shell form to allow PORT variable expansion
+CMD gunicorn run:app --bind 0.0.0.0:${PORT:-8000}
+
+============================================================
+STEP 3️⃣  Build Docker Image (1st - Local Check)
+============================================================
+
+docker build --no-cache -t pythoncodelife/assistant-service:latest .
+
+============================================================
+STEP 4️⃣  Tag Production Version (2nd - Local Check)
+============================================================
+
+docker tag pythoncodelife/assistant-service:latest pythoncodelife/assistant-service:v1.0.0
+
+============================================================
+STEP 5️⃣  Push to DockerHub (3rd - Local Check)
+============================================================
+
+docker push pythoncodelife/assistant-service:latest
+docker push pythoncodelife/assistant-service:v1.0.0
+
+============================================================
+STEP 6️⃣  Deploy in Railway
+============================================================
+
+Railway Dashboard
+→ Open Project
+→ Create New Service
+→ Select "Deploy from Docker Image"
+
+In Image URL field paste:
+
+pythoncodelife/assistant-service:v1.0.0
+
+⚠️ Do NOT include docker.io/
+
+Railway internally runs:
+docker pull docker.io/pythoncodelife/assistant-service:v1.0.0
+
+Railway automatically injects:
+PORT=<dynamic_value>
+
+============================================================
+STEP 7️⃣  Add Environment Variables in Railway
+============================================================
+
+Railway → Service → Variables
+
+Add:
+
+DATABASE_URL=postgresql://postgres.fryjdlwzsqybqutvxkma:YOUR_PASSWORD@aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres?sslmode=require
+
+SECRET_KEY=your_secure_random_value
+
+PRODUCT_SERVICE_URL=https://product-backend-production-8593.up.railway.app/api/v1/products/list
+
+ORDER_SERVICE_URL=https://backend-cart-order-service-production.up.railway.app/api/v1/orders/list
+
+RECO_SERVICE_URL=https://backend-ml-recommendation-service-production.up.railway.app/api/v1/recommendations
+
+============================================================
+STEP 8️⃣  Generate Public Domain
+============================================================
+
+Railway → Service → Settings → Networking
+Click:
+👉 Generate Domain
+
+Example:
+https://assistant-service-production.up.railway.app
+
+============================================================
+STEP 9️⃣  Test Deployment
+============================================================
+
+Browser:
+
+https://assistant-service-production.up.railway.app/
+
+OR
+
+curl https://assistant-service-production.up.railway.app/
+
+Expected Response:
+
+{"status": "Assistant service started successfully."}
+
+============================================================
+STEP 🔟  Update Angular Production Environment
+============================================================
+
+environment.prod.ts
+
+export const environment = {
+  production: true,
+  assistantApiBaseUrl: 'https://assistant-service-production.up.railway.app'
+};
+
+Then rebuild Angular:
+
+ng build --configuration production
+
+============================================================
+📌 IMAGE URL FORMAT RULE
+============================================================
+
+docker.io/<username>/<repository>:<tag>
+
+Example:
+docker.io/pythoncodelife/assistant-service:v1.0.0
+
+Railway shorthand:
+pythoncodelife/assistant-service:v1.0.0
+
+============================================================
+🧠 INTERVIEW READY EXPLANATION
+============================================================
+
+“We containerized the assistant microservice using Docker,
+used Gunicorn for production serving,
+tagged images with semantic versioning,
+pushed them to DockerHub,
+and configured Railway to deploy specific version tags.
+Railway dynamically injects a PORT variable,
+and our Flask application reads it via os.environ,
+ensuring compatibility across cloud environments.
+The service securely connects to Supabase Postgres using SSL.”
+
+============================================================
+🔥 GOLDEN RULE
+============================================================
+
+If this works:
+
+docker pull pythoncodelife/assistant-service:v1.0.0
+
+Railway will deploy successfully.
+
+============================================================
+FINAL ARCHITECTURE
+============================================================
+
+Angular (Production)
+        ↓
+Assistant Service (Railway)
+        ↓
+Product Service (Railway)
+Cart/Order Service (Railway)
+Recommendation Service (Railway)
+        ↓
+Supabase Postgres (Cloud)
+
+============================================================
+END
+============================================================

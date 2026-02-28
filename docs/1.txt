@@ -1,0 +1,57 @@
+# In PowerShell (inside assistant-service folder):
+$env:FLASK_APP="run.py"
+$env:FLASK_ENV="development"
+
+OR use:
+set FLASK_APP=run.py
+
+Then test:
+flask run
+
+===============================
+
+Now VERY IMPORTANT:
+
+Before running flask db commands,
+you must set FLASK_APP correctly.
+
+Do:
+$env:FLASK_APP="run.py"
+
+Then try:
+flask db init
+
+💡 Why This Happened?
+Flask CLI needs:
+•	Correct FLASK_APP
+•	App factory pattern recognized
+•	migrate initialized inside create_app()
+If any missing → db command won't appear.
+
+🧠 BONUS: CLEAN WAY (Better Setup)
+Instead of setting env manually every time,
+create file:
+
+.env
+
+Add:
+FLASK_APP=run.py
+FLASK_ENV=development
+
+Then install:
+pip install python-dotenv
+
+Flask will auto-detect.
+________________________________________
+🧪 TEST THIS NOW
+Inside assistant-service folder:
+
+venv\Scripts\activate
+
+$env:FLASK_APP="run.py"
+
+flask run
+
+If successful you should see:
+Running on http://127.0.0.1:5000
+

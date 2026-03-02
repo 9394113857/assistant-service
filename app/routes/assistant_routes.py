@@ -81,4 +81,4 @@ def chat():
     # Commit everything together
     db.session.commit()
 
-    return jsonify({"response": assistant_reply})
+    return jsonify({"response": assistant_reply})    

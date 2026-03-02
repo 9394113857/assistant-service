@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from app.extensions import db
 from app.models.chat_session import ChatSession
 from app.models.chat_message import ChatMessage
+from app.models.assistant_training_log import AssistantTrainingLog
 
 from app.services.intent_service import detect_intent
 from app.services.tool_router import (
@@ -20,7 +21,10 @@ def chat():
     user_id = data.get("user_id")
     message = data.get("message")
 
-    # 🔁 Create new session (basic)
+    if not user_id or not message:
+        return jsonify({"error": "user_id and message are required"}), 400
+
+    # 🔁 Create new session
     session = ChatSession(user_id=user_id)
     db.session.add(session)
     db.session.commit()
@@ -36,6 +40,10 @@ def chat():
 
     # 🧠 Detect intent
     intent = detect_intent(message)
+
+    # For now rule-based confidence
+    confidence_score = 1.0
+    model_version = "rule_based_v1"
 
     # 🎛 Route based on intent
     if intent == "product":
@@ -59,6 +67,18 @@ def chat():
         message=assistant_reply
     )
     db.session.add(assistant_msg)
+
+    # 🔥 NEW: Save training log entry
+    training_log = AssistantTrainingLog(
+        user_id=user_id,
+        user_message=message,
+        predicted_intent=intent,
+        confidence_score=confidence_score,
+        model_version=model_version
+    )
+    db.session.add(training_log)
+
+    # Commit everything together
     db.session.commit()
 
     return jsonify({"response": assistant_reply})

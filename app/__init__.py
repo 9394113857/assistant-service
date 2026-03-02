@@ -7,6 +7,11 @@ from .config import Config
 from .extensions import db, migrate
 from flask_cors import CORS
 
+# ✅ IMPORTANT: Import models so Alembic detects them
+from .models.chat_session import ChatSession
+from .models.chat_message import ChatMessage
+from .models.assistant_training_log import AssistantTrainingLog
+
 
 def create_app(testing: bool = False):
     app = Flask(__name__)
@@ -78,7 +83,7 @@ def create_app(testing: bool = False):
     app.register_blueprint(assistant_bp, url_prefix="/api/v1/assistant")
 
     # --------------------------
-    # Health Check (Render/Railway)
+    # Health Check
     # --------------------------
     @app.get("/")
     def health():

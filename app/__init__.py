@@ -21,6 +21,9 @@ def create_app(testing: bool = False):
     # --------------------------
     app.config.from_object(Config)
 
+    # 🔥 DEBUG PRINT (CRITICAL)
+    print("🔥 ACTIVE DATABASE:", app.config["SQLALCHEMY_DATABASE_URI"])
+
     if testing:
         app.config["TESTING"] = True
         app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"

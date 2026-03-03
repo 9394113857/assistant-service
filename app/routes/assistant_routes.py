@@ -38,12 +38,8 @@ def chat():
     db.session.add(user_msg)
     db.session.commit()
 
-    # 🧠 Detect intent
-    intent = detect_intent(message)
-
-    # For now rule-based confidence
-    confidence_score = 1.0
-    model_version = "rule_based_v1"
+    # 🧠 Detect intent (ML + Fallback Hybrid)
+    intent, confidence_score, model_version = detect_intent(message)
 
     # 🎛 Route based on intent
     if intent == "product":
@@ -68,7 +64,7 @@ def chat():
     )
     db.session.add(assistant_msg)
 
-    # 🔥 NEW: Save training log entry
+    # 🔥 Save training log entry (Very Important for ML Retraining)
     training_log = AssistantTrainingLog(
         user_id=user_id,
         user_message=message,
@@ -81,4 +77,18 @@ def chat():
     # Commit everything together
     db.session.commit()
 
-    return jsonify({"response": assistant_reply})    
+    return jsonify({
+        "response": assistant_reply,
+        "intent": intent,
+        "confidence": confidence_score,
+        "model_version": model_version
+    })
+
+
+# So your system now:
+
+# ✔ Uses ML if available
+# ✔ Falls back safely if not
+# ✔ Logs model version
+# ✔ Logs confidence score
+# ✔ Returns intent metadata

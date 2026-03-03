@@ -73,6 +73,16 @@ Thumbs.db
 
 # ============================================================
 # FLASK INSTANCE FOLDER (CRITICAL)
-# Ignore instance folder at project ROOT
 # ============================================================
 instance/
+
+# ============================================================
+# ML MODEL FILES
+# ============================================================
+# DO NOT ignore the models folder itself
+# We want assistant_intent_model.pkl committed by pipeline
+# But ignore accidental huge backup models
+
+models/*.joblib
+models/*.bak
+models/*.old

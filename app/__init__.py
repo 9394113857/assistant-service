@@ -38,6 +38,12 @@ def create_app(testing: bool = False):
     migrate.init_app(app, db)
 
     # --------------------------
+    # 🔥 Load ML Model at Startup
+    # --------------------------
+    from .services.ml_model_loader import load_model
+    load_model()
+
+    # --------------------------
     # Logging Setup
     # --------------------------
     logs_path = os.path.join(os.getcwd(), "logs")
@@ -96,3 +102,12 @@ def create_app(testing: bool = False):
 
     app.logger.info("Assistant service started successfully.")
     return app
+
+
+# Flow:-
+# create_app()
+#      ↓
+# load_model()
+#      ↓
+# If model file exists → load into memory
+# If not → fallback to rule-based

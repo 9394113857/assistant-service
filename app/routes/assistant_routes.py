@@ -6,12 +6,13 @@ assistant_bp = Blueprint("assistant", __name__)
 @assistant_bp.post("/chat")
 def chat():
 
-    data = request.json
-    user_id = data.get("user_id")
+    data = request.json or {}
+
+    user_id = data.get("user_id")   # optional now
     message = data.get("message")
 
-    if not user_id or not message:
-        return jsonify({"error": "user_id and message are required"}), 400
+    if not message:
+        return jsonify({"error": "message is required"}), 400
 
     result = process_user_message(user_id, message)
 

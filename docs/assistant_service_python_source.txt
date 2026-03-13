@@ -1,0 +1,12 @@
+$output = "assistant_service_python_source.txt"
+
+Get-ChildItem -Recurse -File -Filter *.py |
+Where-Object { $_.FullName -notmatch "__pycache__" } |
+ForEach-Object {
+    Add-Content $output "`n`n=================================================="
+    Add-Content $output "FILE: $($_.FullName)"
+    Add-Content $output "==================================================`n"
+    Get-Content $_.FullName | Add-Content $output
+}
+
+Write-Host "Export completed → $output"

@@ -21,11 +21,20 @@ def process_user_message(user_id, message):
     message_lower = message.lower()
 
     # ---------------------------------------------------
-    # Create chat session
+    # SESSION MANAGEMENT (Feature 1 Fix)
+    # Reuse latest session instead of creating every time
     # ---------------------------------------------------
-    session = ChatSession(user_id=user_id)
-    db.session.add(session)
-    db.session.commit()
+    session = (
+        ChatSession.query
+        .filter_by(user_id=user_id)
+        .order_by(ChatSession.created_at.desc())
+        .first()
+    )
+
+    if not session:
+        session = ChatSession(user_id=user_id)
+        db.session.add(session)
+        db.session.commit()
 
     # ---------------------------------------------------
     # Save user message
@@ -38,17 +47,19 @@ def process_user_message(user_id, message):
     db.session.commit()
 
     # ---------------------------------------------------
-    # Detect intent (ML + rule hybrid)
+    # Detect intent
     # ---------------------------------------------------
     intent, confidence_score, model_version = detect_intent(message)
 
-    # If ML confidence too low → fallback to unknown
     if confidence_score is not None and confidence_score < CONFIDENCE_THRESHOLD:
         intent = "unknown"
 
+    # Normalize intent mismatch
+    if intent == "general":
+        intent = "unknown"
+
     # ---------------------------------------------------
-    # Feature 1 FIX
-    # Check login requirement using intent OR keywords
+    # Login restriction check
     # ---------------------------------------------------
     if user_id is None and (
         intent in LOGIN_REQUIRED_INTENTS
@@ -83,11 +94,10 @@ def process_user_message(user_id, message):
         }
 
     # ---------------------------------------------------
-    # Load handler
+    # Load intent handler
     # ---------------------------------------------------
     handler = get_intent_handler(intent)
 
-    # Execute handler
     assistant_reply = handler.handle(user_id=user_id, message=message)
 
     # ---------------------------------------------------

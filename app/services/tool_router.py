@@ -1,21 +1,23 @@
 import os
 import requests
+from flask import request
 
-# 🔁 Replace these with your real service URLs
-# PRODUCT_SERVICE_URL = "http://localhost:5002/api/products"
-# ORDER_SERVICE_URL = "http://localhost:5003/api/orders"
-# RECO_SERVICE_URL = "http://localhost:5005/api/recommendations"
-
-# 🔁 Replace these with your real service URLs from Railway now:-
+# ==============================
+# SERVICE URLS (Railway ENV)
+# ==============================
 PRODUCT_SERVICE_URL = os.getenv("PRODUCT_SERVICE_URL")
 ORDER_SERVICE_URL = os.getenv("ORDER_SERVICE_URL")
 CART_SERVICE_URL = os.getenv("CART_SERVICE_URL")
 RECO_SERVICE_URL = os.getenv("RECO_SERVICE_URL")
 
 
+# ==============================
+# PRODUCT REQUEST
+# ==============================
 def handle_product_request():
     try:
         response = requests.get(PRODUCT_SERVICE_URL)
+
         if response.status_code == 200:
             products = response.json()
 
@@ -23,56 +25,97 @@ def handle_product_request():
                 return "No products available."
 
             result = "Here are some products:\n"
+
             for p in products[:5]:
-                result += f"- {p.get('name')} (${p.get('price')})\n"
+                name = p.get("name", "Unknown")
+                price = p.get("price", "N/A")
+                result += f"- {name} (${price})\n"
 
             return result
 
         return "Could not fetch products."
 
     except Exception:
-        return "Product service unavailable."
+        return "Sorry, product service is temporarily unavailable."
 
 
+# ==============================
+# ORDER REQUEST (JWT FORWARDING)
+# ==============================
 def handle_order_request(user_id: int):
     try:
-        response = requests.get(f"{ORDER_SERVICE_URL}/{user_id}")
 
-        if response.status_code == 200:
-            orders = response.json()
+        # 🔐 Forward user JWT token to Order service
+        token = request.headers.get("Authorization")
 
-            if not orders:
-                return "You have no orders."
+        headers = {}
 
-            result = "Your recent orders:\n"
-            for o in orders[:5]:
-                result += f"- Order #{o.get('id')} | Status: {o.get('status')}\n"
+        if token:
+            headers["Authorization"] = token
 
-            return result
+        response = requests.get(
+            f"{ORDER_SERVICE_URL}/{user_id}",
+            headers=headers
+        )
 
-        return "Could not fetch orders."
+        if response.status_code == 401:
+            return "Please login to access your orders."
+
+        if response.status_code != 200:
+            return "Could not fetch orders."
+
+        orders = response.json()
+
+        if not orders:
+            return "You have no orders."
+
+        result = "Your recent orders:\n"
+
+        for o in orders[:5]:
+            order_id = o.get("order_id") or o.get("id")
+            status = o.get("status", "unknown")
+
+            result += f"- Order #{order_id} | Status: {status}\n"
+
+        return result
 
     except Exception:
         return "Order service unavailable."
 
 
+# ==============================
+# RECOMMENDATION REQUEST
+# ==============================
 def handle_recommendation_request(user_id: int):
     try:
-        response = requests.get(f"{RECO_SERVICE_URL}/{user_id}")
 
-        if response.status_code == 200:
-            recos = response.json()
+        token = request.headers.get("Authorization")
 
-            if not recos:
-                return "No recommendations available."
+        headers = {}
 
-            result = "Recommended for you:\n"
-            for r in recos[:5]:
-                result += f"- Product ID: {r.get('product_id')}\n"
+        if token:
+            headers["Authorization"] = token
 
-            return result
+        response = requests.get(
+            f"{RECO_SERVICE_URL}/{user_id}",
+            headers=headers
+        )
 
-        return "Could not fetch recommendations."
+        if response.status_code != 200:
+            return "Could not fetch recommendations."
+
+        recos = response.json()
+
+        if not recos:
+            return "No recommendations available."
+
+        result = "Recommended for you:\n"
+
+        for r in recos[:5]:
+            product_id = r.get("product_id")
+            result += f"- Product ID: {product_id}\n"
+
+        return result
 
     except Exception:
         return "Recommendation service unavailable."

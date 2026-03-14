@@ -66,4 +66,10 @@ Feature 2 will make it ChatGPT-style assistant.
 
 So Feature 1 only we did as of now at :- 143-26 | 1:35 PM
 ---------------------------------------------------------
+✅ Feature 2 Phase-1 is working correctly — the assistant now remembers recent conversation context, 
+but login restriction still blocks recommendations for guest users, 
+which is why "recommend one" asks for login.
+
+1️⃣ Done: Feature 2 Phase-1 added conversation memory (assistant reads last messages for context).
+2️⃣ Next: Feature 2 Phase-2 will add follow-up intelligence (understand queries like “cheaper one”, “phones only”, etc.).
 

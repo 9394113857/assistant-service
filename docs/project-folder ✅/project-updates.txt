@@ -71,6 +71,7 @@ but login restriction still blocks recommendations for guest users,
 which is why "recommend one" asks for login.
 
 1️⃣ Done: Feature 2 Phase-1 added conversation memory (assistant reads last messages for context).
-2️⃣ Next: Feature 2 Phase-2 will add follow-up intelligence (understand queries like “cheaper one”, “phones only”, etc.).
-----------------------------------------------------------
-
+2️⃣ Done: Feature 2 Phase-2 implemented follow-up query resolver so the assistant can interpret conversational queries like “recommend one” based on previous messages.
+3️⃣ Done: Added graceful product service handling so the assistant never crashes if products are unavailable or the service fails.
+4️⃣ Next: Feature 3 will integrate the ML recommendation pipeline so the assistant can provide intelligent product suggestions like “recommend phones”, “best laptops”, or “suggest earbuds”.----------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

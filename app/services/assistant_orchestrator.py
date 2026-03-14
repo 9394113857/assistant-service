@@ -21,7 +21,7 @@ def process_user_message(user_id, message):
     message_lower = message.lower()
 
     # ---------------------------------------------------
-    # SESSION MANAGEMENT (Feature 1 Fix)
+    # SESSION MANAGEMENT
     # Reuse latest session instead of creating every time
     # ---------------------------------------------------
     session = (
@@ -37,6 +37,24 @@ def process_user_message(user_id, message):
         db.session.commit()
 
     # ---------------------------------------------------
+    # FEATURE 2: Load recent conversation context
+    # ---------------------------------------------------
+    recent_messages = (
+        ChatMessage.query
+        .filter_by(session_id=session.id)
+        .order_by(ChatMessage.id.desc())
+        .limit(3)
+        .all()
+    )
+
+    conversation_context = [
+        f"{msg.role}: {msg.message}"
+        for msg in reversed(recent_messages)
+    ]
+
+    context_text = " ".join(conversation_context)
+
+    # ---------------------------------------------------
     # Save user message
     # ---------------------------------------------------
     db.session.add(ChatMessage(
@@ -47,9 +65,11 @@ def process_user_message(user_id, message):
     db.session.commit()
 
     # ---------------------------------------------------
-    # Detect intent
+    # Intent Detection (with context)
     # ---------------------------------------------------
-    intent, confidence_score, model_version = detect_intent(message)
+    intent, confidence_score, model_version = detect_intent(
+        f"{context_text} {message}"
+    )
 
     if confidence_score is not None and confidence_score < CONFIDENCE_THRESHOLD:
         intent = "unknown"
@@ -59,7 +79,7 @@ def process_user_message(user_id, message):
         intent = "unknown"
 
     # ---------------------------------------------------
-    # Login restriction check
+    # Login restriction
     # ---------------------------------------------------
     if user_id is None and (
         intent in LOGIN_REQUIRED_INTENTS
@@ -94,7 +114,7 @@ def process_user_message(user_id, message):
         }
 
     # ---------------------------------------------------
-    # Load intent handler
+    # Load handler
     # ---------------------------------------------------
     handler = get_intent_handler(intent)
 

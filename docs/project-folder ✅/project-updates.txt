@@ -72,4 +72,5 @@ which is why "recommend one" asks for login.
 
 1️⃣ Done: Feature 2 Phase-1 added conversation memory (assistant reads last messages for context).
 2️⃣ Next: Feature 2 Phase-2 will add follow-up intelligence (understand queries like “cheaper one”, “phones only”, etc.).
+----------------------------------------------------------
 

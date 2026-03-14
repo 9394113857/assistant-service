@@ -5,6 +5,7 @@ from app.models.assistant_training_log import AssistantTrainingLog
 
 from app.services.intent_service import detect_intent
 from app.services.intent_registry import get_intent_handler
+from app.services.followup_resolver import resolve_followup
 
 # Minimum ML confidence required
 CONFIDENCE_THRESHOLD = 0.60
@@ -67,7 +68,12 @@ def process_user_message(user_id, message):
     # Intent Detection (FIXED)
     # Only use current message for ML
     # ---------------------------------------------------
-    intent, confidence_score, model_version = detect_intent(message)
+    
+    # intent, confidence_score, model_version = detect_intent(message)
+    resolved_message = resolve_followup(message, conversation_context)
+
+    intent, confidence_score, model_version = detect_intent(resolved_message)
+
 
     if confidence_score is not None and confidence_score < CONFIDENCE_THRESHOLD:
         intent = "unknown"

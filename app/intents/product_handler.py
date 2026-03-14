@@ -7,17 +7,14 @@ class ProductHandler(BaseIntentHandler):
     def handle(self, user_id: int, message: str) -> str:
 
         try:
-            response = handle_product_request(message)
+            # Router already handles product fetching + formatting
+            response = handle_product_request()
 
-            # If router returned empty
             if not response:
-                return (
-                    "Sorry, I couldn't find any products matching your request."
-                )
+                return "Sorry, I couldn't find any products right now."
 
             return response
 
-        except Exception:
-            return (
-                "Sorry, I couldn't reach the product service right now."
-            )
+        except Exception as e:
+            print("Product handler error:", e)
+            return "Product service is temporarily unavailable. Please try again later."

@@ -22,7 +22,7 @@ def process_user_message(user_id, message):
 
     # ---------------------------------------------------
     # SESSION MANAGEMENT
-    # Reuse latest session instead of creating every time
+    # Reuse latest session
     # ---------------------------------------------------
     session = (
         ChatSession.query
@@ -37,7 +37,8 @@ def process_user_message(user_id, message):
         db.session.commit()
 
     # ---------------------------------------------------
-    # FEATURE 2: Load recent conversation context
+    # FEATURE 2: Load conversation context
+    # (for future follow-up intelligence)
     # ---------------------------------------------------
     recent_messages = (
         ChatMessage.query
@@ -52,8 +53,6 @@ def process_user_message(user_id, message):
         for msg in reversed(recent_messages)
     ]
 
-    context_text = " ".join(conversation_context)
-
     # ---------------------------------------------------
     # Save user message
     # ---------------------------------------------------
@@ -65,16 +64,14 @@ def process_user_message(user_id, message):
     db.session.commit()
 
     # ---------------------------------------------------
-    # Intent Detection (with context)
+    # Intent Detection (FIXED)
+    # Only use current message for ML
     # ---------------------------------------------------
-    intent, confidence_score, model_version = detect_intent(
-        f"{context_text} {message}"
-    )
+    intent, confidence_score, model_version = detect_intent(message)
 
     if confidence_score is not None and confidence_score < CONFIDENCE_THRESHOLD:
         intent = "unknown"
 
-    # Normalize intent mismatch
     if intent == "general":
         intent = "unknown"
 

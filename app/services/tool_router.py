@@ -2,9 +2,6 @@ import os
 import requests
 from flask import request
 
-# ==============================
-# SERVICE URLS (Railway ENV)
-# ==============================
 PRODUCT_SERVICE_URL = os.getenv("PRODUCT_SERVICE_URL")
 ORDER_SERVICE_URL = os.getenv("ORDER_SERVICE_URL")
 CART_SERVICE_URL = os.getenv("CART_SERVICE_URL")
@@ -15,37 +12,41 @@ RECO_SERVICE_URL = os.getenv("RECO_SERVICE_URL")
 # PRODUCT REQUEST
 # ==============================
 def handle_product_request():
+
     try:
+
         response = requests.get(PRODUCT_SERVICE_URL)
 
-        if response.status_code == 200:
-            products = response.json()
+        if response.status_code != 200:
+            return "Sorry, product service is temporarily unavailable."
 
-            if not products:
-                return "No products available."
+        products = response.json()
 
-            result = "Here are some products:\n"
+        if not products:
+            return "No products available."
 
-            for p in products[:5]:
-                name = p.get("name", "Unknown")
-                price = p.get("price", "N/A")
-                result += f"- {name} (${price})\n"
+        result = "Here are some products:\n"
 
-            return result
+        for p in products[:5]:
 
-        return "Could not fetch products."
+            name = p.get("name", "Unknown")
+            price = p.get("price", "N/A")
+
+            result += f"- {name} (${price})\n"
+
+        return result
 
     except Exception:
-        return "Sorry, product service is temporarily unavailable."
+        return "Product service unavailable."
 
 
 # ==============================
-# ORDER REQUEST (JWT FORWARDING)
+# ORDER REQUEST
 # ==============================
 def handle_order_request(user_id: int):
+
     try:
 
-        # 🔐 Forward user JWT token to Order service
         token = request.headers.get("Authorization")
 
         headers = {}
@@ -72,6 +73,7 @@ def handle_order_request(user_id: int):
         result = "Your recent orders:\n"
 
         for o in orders[:5]:
+
             order_id = o.get("order_id") or o.get("id")
             status = o.get("status", "unknown")
 
@@ -87,6 +89,7 @@ def handle_order_request(user_id: int):
 # RECOMMENDATION REQUEST
 # ==============================
 def handle_recommendation_request(user_id: int):
+
     try:
 
         token = request.headers.get("Authorization")
@@ -102,20 +105,22 @@ def handle_recommendation_request(user_id: int):
         )
 
         if response.status_code != 200:
-            return "Could not fetch recommendations."
+            return "Recommendation service unavailable."
 
         recos = response.json()
 
         if not recos:
-            return "No recommendations available."
+            return "No recommendations available yet."
 
         result = "Recommended for you:\n"
 
         for r in recos[:5]:
+
             product_id = r.get("product_id")
+
             result += f"- Product ID: {product_id}\n"
 
         return result
 
     except Exception:
-        return "Recommendation service unavailable."
+        return "Could not fetch recommendations."

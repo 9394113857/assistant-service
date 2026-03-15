@@ -1,49 +1,14 @@
-from .ml_model_loader import get_model
+from app.intents.base_handler import BaseIntentHandler
+from app.services.tool_router import handle_recommendation_request
 
 
-def detect_intent(message: str):
+class RecommendationHandler(BaseIntentHandler):
 
-    message = message.lower().strip()
+    def handle(self, user_id: int, message: str) -> str:
 
-    # Rule-based conversational intents
-    if any(word in message for word in [
-        "hi", "hello", "hey", "hii", "heyy",
-        "good morning", "good evening", "good night"
-    ]):
-        return "greeting", 1.0, "rule_based_v2"
+        # User must be logged in for recommendations
+        if not user_id:
+            return "Please login to access personalized recommendations."
 
-    if any(word in message for word in [
-        "thank you", "thanks", "thx"
-    ]):
-        return "greeting", 1.0, "rule_based_v2"
-
-    if "your name" in message:
-        return "greeting", 1.0, "rule_based_v2"
-
-    if "how are you" in message:
-        return "greeting", 1.0, "rule_based_v2"
-
-    # ML Model
-    model, model_version = get_model()
-
-    if model:
-        prediction = model.predict([message])[0]
-
-        try:
-            confidence = max(model.predict_proba([message])[0])
-        except Exception:
-            confidence = 0.90
-
-        return prediction, float(confidence), model_version
-
-    # Rule fallback
-    if any(word in message for word in ["order", "track", "status"]):
-        return "order", 1.0, "rule_based_v1"
-
-    if any(word in message for word in ["product", "item", "show", "display"]):
-        return "product", 1.0, "rule_based_v1"
-
-    if any(word in message for word in ["recommend", "suggest"]):
-        return "recommendation", 1.0, "rule_based_v1"
-
-    return "unknown", 0.5, "rule_based_v1"
+        # Call recommendation service
+        return handle_recommendation_request(user_id)

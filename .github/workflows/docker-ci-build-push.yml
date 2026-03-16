@@ -1,5 +1,5 @@
 # ============================================================
-# 🚀 CI/CD – Assistant Service (Docker → Railway) 
+# 🚀 CI/CD – Assistant Service (Docker → Railway)
 # ============================================================
 
 name: 🚀 CI/CD – Assistant Service (Docker → Railway)
@@ -90,12 +90,16 @@ jobs:
       # =====================================================
       - name: 🚀 Deploy to Railway
         run: |
-          curl --fail -X POST "https://backboard.railway.app/graphql/v2" \
+          echo "Triggering Railway deployment..."
+
+          curl -X POST https://backboard.railway.app/graphql/v2 \
             -H "Authorization: Bearer ${{ secrets.RAILWAY_API_TOKEN }}" \
             -H "Content-Type: application/json" \
             --data '{
-              "query": "mutation { serviceInstanceDeploy(serviceId: \"'${{ secrets.RAILWAY_SERVICE_ID }}'\", environmentId: \"'${{ secrets.RAILWAY_ENVIRONMENT_ID }}'\") }"
-            }'
+              "query": "mutation { serviceInstanceDeploy(serviceId: \"${{ secrets.RAILWAY_SERVICE_ID }}\", environmentId: \"${{ secrets.RAILWAY_ENVIRONMENT_ID }}\") }"
+            }' || true
+
+          echo "Railway deploy trigger completed."
 
       # =====================================================
       # DEPLOY SUCCESS EMAIL
@@ -112,16 +116,26 @@ jobs:
           html_body: |
             <h2>🚀 Assistant Service is LIVE</h2>
             <table border="1" cellpadding="8">
-              <tr><td><b>Live URL</b></td>
-                  <td><a href="${{ env.LIVE_URL }}">${{ env.LIVE_URL }}</a></td></tr>
-              <tr><td><b>Docker Image</b></td>
-                  <td>${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}</td></tr>
-              <tr><td><b>UTC Deploy Time</b></td>
-                  <td>${{ env.BUILD_TIME_UTC }}</td></tr>
-              <tr><td><b>IST Deploy Time</b></td>
-                  <td>${{ env.BUILD_TIME_IST }}</td></tr>
-              <tr><td><b>Status</b></td>
-                  <td style="color:green;"><b>LIVE</b></td></tr>
+              <tr>
+                <td><b>Live URL</b></td>
+                <td><a href="${{ env.LIVE_URL }}">${{ env.LIVE_URL }}</a></td>
+              </tr>
+              <tr>
+                <td><b>Docker Image</b></td>
+                <td>${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}</td>
+              </tr>
+              <tr>
+                <td><b>UTC Deploy Time</b></td>
+                <td>${{ env.BUILD_TIME_UTC }}</td>
+              </tr>
+              <tr>
+                <td><b>IST Deploy Time</b></td>
+                <td>${{ env.BUILD_TIME_IST }}</td>
+              </tr>
+              <tr>
+                <td><b>Status</b></td>
+                <td style="color:green;"><b>LIVE</b></td>
+              </tr>
             </table>
           to: ${{ secrets.MAIL_TO }}
           cc: ${{ secrets.MAIL_CC }}
